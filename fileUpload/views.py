@@ -1,10 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 import openpyxl
 
 # Create your views here.
-# def index(request):
-#     return render(request, 'index.html')
 
 #file upload
 def index(request):
@@ -15,6 +12,8 @@ def index(request):
         sheet = request.POST.get("sheet")
 
         outputColArray = []
+        rowNumber = 0
+        rowNo = 0
 
         if sheet != '':
             
@@ -32,6 +31,7 @@ def index(request):
                 for row in worksheet.iter_rows():
                     row_data = list()
                     colNumber = 0
+                    rowNumber = rowNumber + 1
 
                     for cell in row:
                         colNumber = colNumber + 1
@@ -39,13 +39,13 @@ def index(request):
 
                         if "Output" in str(cell.value):
                             outputColArray.append(colNumber)
-                            # print(colNumber)
+                            rowNo = rowNumber + 1
+                            # print(rowNo)
+                            # print(outputColArray)
 
                     excel_data.append(row_data)
 
-                # print(excel_data)
-
-                return render(request, 'index.html', {"data":excel_data, "outputColumns": outputColArray,})
+                return render(request, 'index.html', {"data":excel_data, "outputColumns": outputColArray, "outputRow": rowNo, })
             
             except Exception as e:
                 print(e)
@@ -54,3 +54,18 @@ def index(request):
         else:
             return render(request, 'index.html', {"error":"Error. Please Enter Sheet Name"})
 
+
+def printExcel(request):
+
+    if "POST" == request.method:
+
+        data = request.POST.getlist("allData")
+        colArr = request.POST.getlist("colArr")
+        row = request.POST.get("row")
+
+        print(data, colArr, row)
+
+        return render(request, 'finalData.html', {"data":data,} )
+    
+    else:
+        return render(request, 'finalData.html', {})

@@ -1,3 +1,5 @@
+{% load temp_extras %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,42 +41,66 @@
     </div>
 
     <div>
-        <table class="table table-hover">
-            
-            {% for row in data %}
-            
-                <!-- set row id -->
-                {% with rowID=forloop.counter %}
+        
+        <form method="POST" action="/printExcel">
+            {% csrf_token %}
+
+            <table class="table table-hover">
+
+                {% for row in data %}
                 
-                <tr>
-                    {% for cell in row %}
+                    <!-- set row id -->
+                    {% with rowID=forloop.counter %}
                     
-                        <!-- set column id -->
-                        {% with colID=forloop.counter %}
-
-                        <!-- check output field numbers -->
-                        <!-- Col: {{colID}} -->
-                        <!-- Row: {{rowID}} -->
-
-                            {% if cell != 'None' %}
-                            <td>
-                                {{ cell }}
-                            </td>
-
-                            {% else %}
-                                <td></td>
-                            {% endif %}
-
-                        {% endwith %}
+                    <tr>
+                        {% for cell in row %}
                         
-                    {% endfor %}
-                </tr>
+                            <!-- set column id -->
+                            {% with colID=forloop.counter res=0 %}
 
-                {% endwith %}
-                    
+                                <!-- Check Output Columns and Rows-->
+                                {% checkRowsAndColumns outputColumns outputRow colID rowID as res%}
+
+                                {% if res == 1 %}
+                                    <td>
+                                        <input type="text" name="{{colID}}-{{rowID}}">
+                                    </td>
+                                {% elif cell == 'None' %}
+                                    <td></td>
+                                {% else %}
+                                    <td>
+                                        {{ cell }}
+                                    </td>
+                                {% endif %}
+
+                            {% endwith %}
+                                                        
+                        {% endfor %}
+                    </tr>
+
+                    {% endwith %}
+
+                {% endfor %}
+                
+            </table>
+            
+            <input type="hidden" name="allData" value={{data}} />
+            <input type="hidden" name="row" value={{outputRow}} />
+
+            {% for column in outputColumns%}
+                <input type="hidden" name="colArr" value={{column}} />
             {% endfor %}
 
-        </table>
+            {% if data %}
+                <button type="submit"
+                    value="Upload"
+                    class="btn btn-primary m-2"
+                >
+                Print
+                </button>
+            {% endif %}
+                
+        </form>
 
     </div>
 
