@@ -83,13 +83,6 @@
                 {% endfor %}
                 
             </table>
-            
-            <input type="hidden" name="allData" value={{data}} />
-            <input type="hidden" name="row" value={{outputRow}} />
-
-            {% for column in outputColumns%}
-                <input type="hidden" name="colArr" value={{column}} />
-            {% endfor %}
 
             {% if data %}
                 <button type="submit"

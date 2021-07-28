@@ -1,7 +1,7 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 import openpyxl
-
-# Create your views here.
+import csv
 
 #file upload
 def index(request):
@@ -45,6 +45,11 @@ def index(request):
 
                     excel_data.append(row_data)
 
+                    # save data to session
+                    request.session['allData'] = excel_data
+                    request.session['colArr'] = outputColArray
+                    request.session['row'] = rowNo
+
                 return render(request, 'index.html', {"data":excel_data, "outputColumns": outputColArray, "outputRow": rowNo, })
             
             except Exception as e:
@@ -55,17 +60,47 @@ def index(request):
             return render(request, 'index.html', {"error":"Error. Please Enter Sheet Name"})
 
 
+# export data into csv
 def printExcel(request):
 
     if "POST" == request.method:
 
-        data = request.POST.getlist("allData")
-        colArr = request.POST.getlist("colArr")
-        row = request.POST.get("row")
+        data = request.session['allData']
+        colArr = request.session['colArr']
+        rowNo = request.session['row']
 
-        print(data, colArr, row)
+        # print(data, colArr, row)
 
-        return render(request, 'finalData.html', {"data":data,} )
+        # print to csv
+        response = HttpResponse(content_type="text/csv")
+        writer = csv.writer(response)
+
+        rowCount = 0
+
+        for row in data:
+            arr = []
+            rowCount = rowCount + 1
+            colCount = 0
+
+            for col in row:
+                colCount = colCount + 1
+                colValue = col
+                # print(colCount, rowCount)
+
+                for colItem in colArr:
+                    if(colItem == colCount and rowCount >= rowNo):
+                        inputFieldName = str(colCount)+"-"+str(rowCount)
+                        colValue = request.POST.get(inputFieldName)
+
+                if(colValue != 'None'):
+                    arr.append(colValue)
+                else:
+                    arr.append(" ")
+
+            writer.writerow(arr)
+            # print(arr)
+
+        response['Content-Disposition'] = 'attachment; filename="modifiedData.csv"'
+        return response
+        # return render(request, 'finalData.html', {"data":data,} )
     
-    else:
-        return render(request, 'finalData.html', {})
